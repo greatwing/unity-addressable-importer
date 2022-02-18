@@ -102,6 +102,18 @@ public class AddressableImporter : AssetPostprocessor
         var dirty = false;
         if (TryGetMatchedRule(assetPath, importSettings, out var matchedRule))
         {
+            //Skip non-static content.
+            var guid = AssetDatabase.AssetPathToGUID(assetPath);
+            var oldEntry = settings.FindAssetEntry(guid);
+            if (oldEntry != null && oldEntry.parentGroup != null)
+            {
+                var schema = oldEntry.parentGroup.GetSchema<ContentUpdateGroupSchema>();
+                if (schema != null && !schema.StaticContent)
+                {
+                    return dirty;
+                }
+            }
+
             // Apply the matched rule.
             var entry = CreateOrUpdateAddressableAssetEntry(settings, importSettings, matchedRule, assetPath);
             if (entry != null)
